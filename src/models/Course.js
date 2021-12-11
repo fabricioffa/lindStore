@@ -7,16 +7,19 @@ const courseSchema = new mongoose.Schema({
     minLength: 5,
     maxlength: 255,
     trim: true,
-    unique: true,
   },
   imgSrc: {
     type: String,
     required: true,
+    minLength: 5,
+    maxlength: 255,
     trim: true,
   },
   imgAlt: {
     type: String,
     required: true,
+    minLength: 5,
+    maxlength: 255,
     trim: true,
   },
   price: {
