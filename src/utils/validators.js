@@ -10,3 +10,14 @@ exports.coursePostValidator = (body) => {
 
   return schema.validate(body, { abortEarly: false });
 };
+
+exports.coursePutValidator = (body) => {
+  const schema = Joi.object({
+    name: Joi.string().trim().min(5).max(255),
+    imgSrc: Joi.string().trim().min(5).max(255),
+    imgAlt: Joi.string().trim().min(5).max(255),
+    price: Joi.number().min(10).max(3000).positive().precision(2),
+  });
+
+  return schema.validate(body, { abortEarly: false });
+};

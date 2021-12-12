@@ -5,7 +5,7 @@ const app = express();
 
 require('./startUp/loggings')();
 require('./startup/db')(app);
-require('./startup/applications')(express, app);
+require('./startup/applications')(express, app, mongoose.connection);
 
 const port = process.env.PORT || 3333;
 
