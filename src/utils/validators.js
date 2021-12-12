@@ -5,6 +5,7 @@ exports.coursePostValidator = (body) => {
     name: Joi.string().trim().min(5).max(255).required(),
     imgSrc: Joi.string().trim().min(5).max(255).required(),
     imgAlt: Joi.string().trim().min(5).max(255).required(),
+    description: Joi.string().trim().min(5).max(1200).required(),
     price: Joi.number().min(10).max(3000).positive().precision(2).required(),
   });
 
@@ -16,6 +17,7 @@ exports.coursePutValidator = (body) => {
     name: Joi.string().trim().min(5).max(255),
     imgSrc: Joi.string().trim().min(5).max(255),
     imgAlt: Joi.string().trim().min(5).max(255),
+    description: Joi.string().trim().min(5).max(1200),
     price: Joi.number().min(10).max(3000).positive().precision(2),
   });
 

@@ -1,10 +1,19 @@
-const mongoose = require('mongoose');
+const {
+  Types: { ObjectId },
+} = require('mongoose');
 const request = require('supertest');
 const Course = require('../../src/models/Course');
 const { app, conn } = require('../../server');
 
 describe('api/courses', () => {
   let agent;
+  const payload = {
+    name: 'aname',
+    imgSrc: 'imgSrc',
+    imgAlt: 'imgAlt',
+    price: 15,
+    description: 'description',
+  };
 
   beforeEach(() => (agent = request.agent(app)));
 
@@ -13,19 +22,6 @@ describe('api/courses', () => {
   });
 
   describe('GET /', () => {
-    it('should return all courses if there are courses ', async () => {
-      await Course.create({
-        name: 'aname',
-        imgSrc: 'imgSrc',
-        imgAlt: 'imgAlt',
-        price: 15,
-      });
-
-      const res = await agent.get('/api/courses');
-
-      expect(res.body).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'aname' })]));
-    });
-
     it('should return an empty array and 404 if there are no courses ', async () => {
       await Course.deleteMany({});
 
@@ -34,18 +30,28 @@ describe('api/courses', () => {
       expect(res.body).toStrictEqual([]);
       expect(res.status).toBe(404);
     });
+
+    it('should return all courses if there are courses ', async () => {
+      await Course.create(payload);
+
+      const res = await agent.get('/api/courses');
+
+      expect(res.body).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'aname' })]));
+    });
   });
 
   describe('POST /', () => {
     afterEach(async () => await Course.deleteMany({}));
 
     test.each([
-      { imgSrc: 'imgSrc', imgAlt: 'imgAlt', price: 15 },
-      { name: 'aname', imgAlt: 'imgAlt', price: 15 },
-      { name: 'aname', imgSrc: 'imgSrc', price: 15 },
-      { name: 'aname', imgSrc: 'imgSrc', imgAlt: 'imgAlt' },
+      { imgSrc: 'imgSrc', imgAlt: 'imgAlt', price: 15, description: 'description' },
+      { name: 'aname', imgAlt: 'imgAlt', price: 15, description: 'description' },
+      { name: 'aname', imgAlt: 'imgAlt', price: 15, description: 'description' },
+      { name: 'aname', imgSrc: 'imgSrc', price: 15, description: 'description' },
+      { name: 'aname', imgSrc: 'imgSrc', imgAlt: 'imgAlt', description: 'description' },
+      { name: 'aname', imgSrc: 'imgSrc', imgAlt: 'imgAlt', price: 15 },
     ])('given the payload is %p it should return 400', async (payload) => {
-      const res = await agent.post('/api/courses').send(Object.assign(payload));
+      const res = await agent.post('/api/courses').send(payload);
 
       expect(res.status).toBe(400);
     });
@@ -55,7 +61,7 @@ describe('api/courses', () => {
       async (payload) => {
         const res = await agent
           .post('/api/courses')
-          .send(Object.assign(payload, { imgSrc: 'imgSrc', imgAlt: 'imgAlt', price: 15 }));
+          .send(Object.assign(payload, { imgSrc: 'imgSrc', imgAlt: 'imgAlt', price: 15, description: 'description' }));
 
         expect(res.status).toBe(400);
       },
@@ -66,7 +72,7 @@ describe('api/courses', () => {
       async (payload) => {
         const res = await agent
           .post('/api/courses')
-          .send(Object.assign(payload, { name: 'aname', imgAlt: 'imgAlt', price: 15 }));
+          .send(Object.assign(payload, { name: 'aname', imgAlt: 'imgAlt', price: 15, description: 'description' }));
 
         expect(res.status).toBe(400);
       },
@@ -77,7 +83,18 @@ describe('api/courses', () => {
       async (payload) => {
         const res = await agent
           .post('/api/courses')
-          .send(Object.assign(payload, { name: 'aname', imgSrc: 'imgSrc', price: 15 }));
+          .send(Object.assign(payload, { name: 'aname', imgSrc: 'imgSrc', price: 15, description: 'description' }));
+
+        expect(res.status).toBe(400);
+      },
+    );
+
+    test.each([{ description: 'aaaa' }, { description: 'a'.repeat(1201) }, { description: 12 }, { description: null }])(
+      'given the description is %p it should return 400',
+      async (payload) => {
+        const res = await agent
+          .post('/api/courses')
+          .send(Object.assign(payload, { name: 'aname', imgSrc: 'imgSrc', price: 15, imgAlt: 'imgAlt' }));
 
         expect(res.status).toBe(400);
       },
@@ -88,20 +105,13 @@ describe('api/courses', () => {
       async (payload) => {
         const res = await agent
           .post('/api/courses')
-          .send(Object.assign(payload, { name: 'aname', imgAlt: 'imgAlt', price: 15 }));
+          .send(Object.assign(payload, { name: 'aname', imgAlt: 'imgAlt', price: 15, description: 'description' }));
 
         expect(res.status).toBe(400);
       },
     );
 
     it('should not permit creating multiples courses with the same name', async () => {
-      const payload = {
-        name: 'aname',
-        imgSrc: 'imgSrc',
-        imgAlt: 'imgAlt',
-        price: 15,
-      };
-
       await Course.create(payload);
 
       const res = await agent.post('/api/courses').send(payload);
@@ -110,12 +120,7 @@ describe('api/courses', () => {
     });
 
     it('should return the course if the data is valid', async () => {
-      const res = await agent.post('/api/courses').send({
-        name: 'aname',
-        imgSrc: 'imgSrc',
-        imgAlt: 'imgAlt',
-        price: 15,
-      });
+      const res = await agent.post('/api/courses').send(payload);
 
       expect(res.body).toEqual(
         expect.objectContaining({
@@ -123,6 +128,7 @@ describe('api/courses', () => {
           imgSrc: 'imgSrc',
           imgAlt: 'imgAlt',
           price: 15,
+          description: 'description',
           _id: expect.any(String),
         }),
       );
@@ -132,14 +138,7 @@ describe('api/courses', () => {
   describe('PUT /', () => {
     let course;
 
-    beforeEach(async () => {
-      course = await Course.create({
-        name: 'aname',
-        imgSrc: 'imgSrc',
-        imgAlt: 'imgAlt',
-        price: 15,
-      });
-    });
+    beforeEach(async () => (course = await Course.create(payload)));
 
     afterEach(async () => await Course.deleteMany({}));
 
@@ -150,7 +149,7 @@ describe('api/courses', () => {
     });
 
     it('should return 404 if id does not matches', async () => {
-      const id = mongoose.Types.ObjectId();
+      const id = ObjectId();
 
       const res = await agent.put('/api/courses/' + id).send({ name: 'aname' });
 
@@ -192,19 +191,21 @@ describe('api/courses', () => {
         expect(res.status).toBe(400);
       },
     );
+
+    test.each([{ description: 'aaaa' }, { description: 'a'.repeat(1201) }, { description: 12 }, { description: null }])(
+      'given the description is %p it should return 400',
+      async (payload) => {
+        const res = await agent.post('/api/courses').send(payload);
+
+        expect(res.status).toBe(400);
+      },
+    );
   });
 
   describe('DELETE /', () => {
     let course;
 
-    beforeEach(async () => {
-      course = await Course.create({
-        name: 'aname',
-        imgSrc: 'imgSrc',
-        imgAlt: 'imgAlt',
-        price: 15,
-      });
-    });
+    beforeEach(async () => (course = await Course.create(payload)));
 
     afterEach(async () => await Course.deleteMany({}));
 
@@ -215,7 +216,7 @@ describe('api/courses', () => {
     });
 
     it('should return 404 if id does not matches', async () => {
-      const id = mongoose.Types.ObjectId();
+      const id = ObjectId();
 
       const res = await agent.delete('/api/courses/' + id);
 
@@ -237,6 +238,7 @@ describe('api/courses', () => {
           imgSrc: 'imgSrc',
           imgAlt: 'imgAlt',
           price: 15,
+          description: 'description',
           _id: course._id.toString(),
         }),
       );
@@ -246,14 +248,7 @@ describe('api/courses', () => {
   describe('GET /:id', () => {
     let course;
 
-    beforeEach(async () => {
-      course = await Course.create({
-        name: 'aname',
-        imgSrc: 'imgSrc',
-        imgAlt: 'imgAlt',
-        price: 15,
-      });
-    });
+    beforeEach(async () => (course = await Course.create(payload)));
 
     afterEach(async () => await Course.deleteMany({}));
 
@@ -264,7 +259,7 @@ describe('api/courses', () => {
     });
 
     it('should return 404 if id does not matches', async () => {
-      const id = mongoose.Types.ObjectId();
+      const id = ObjectId();
 
       const res = await agent.get('/api/courses/' + id);
 
@@ -280,6 +275,7 @@ describe('api/courses', () => {
           imgSrc: 'imgSrc',
           imgAlt: 'imgAlt',
           price: 15,
+          description: 'description',
           _id: course._id.toString(),
         }),
       );

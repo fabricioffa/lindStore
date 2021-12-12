@@ -5,21 +5,21 @@ const courseSchema = new mongoose.Schema({
     type: String,
     required: true,
     minLength: 5,
-    maxLength: 255,
+    maxlength: 255,
     trim: true,
   },
   imgSrc: {
     type: String,
     required: true,
     minLength: 5,
-    maxLength: 255,
+    maxlength: 255,
     trim: true,
   },
   imgAlt: {
     type: String,
     required: true,
     minLength: 5,
-    maxLength: 255,
+    maxlength: 255,
     trim: true,
   },
   price: {
@@ -27,13 +27,6 @@ const courseSchema = new mongoose.Schema({
     required: true,
     min: 10,
     max: 3000,
-  },
-  description: {
-    type: String,
-    required: true,
-    minLength: 5,
-    maxLength: 1200,
-    trim: true,
   },
 });
 
