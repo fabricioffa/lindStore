@@ -200,6 +200,13 @@ describe('api/courses', () => {
         expect(res.status).toBe(400);
       },
     );
+
+    it('should return the modified course', async () => {
+      const res = await agent.put('/api/courses/' + course._id).send({ name: 'newName' });
+
+      const courseUpdated = await Course.findById(course._id);
+      expect(res.body.name).toBe(courseUpdated.name);
+    });
   });
 
   describe('DELETE /', () => {

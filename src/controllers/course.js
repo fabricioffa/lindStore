@@ -11,16 +11,6 @@ exports.index = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
-  const { error } = postValidator(req.body);
-
-  if (error) {
-    let errors = 'Attention!\n';
-    for (const detail of error.details) {
-      errors = `${errors + detail.message}\n`;
-    }
-    return res.status(400).send(errors);
-  }
-
   const courseInDb = await Course.findOne({ name: req.body.name });
   if (courseInDb) return res.status(400).send('Course already exists');
 
@@ -32,20 +22,10 @@ exports.register = async (req, res) => {
 exports.edit = async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).send('Invalid id format.');
 
-  const { error } = putValidator(req.body);
-
-  if (error) {
-    let errors = 'Attention!\n';
-    for (const detail of error.details) {
-      errors = `${errors + detail.message}\n`;
-    }
-    return res.status(400).send(errors);
-  }
-
   const course = await Course.findById(req.params.id);
   if (!course) return res.status(404).send('Id does not matches any course.');
 
-  res.send('course');
+  res.send(course);
 };
 
 exports.delete = async (req, res) => {
